@@ -1,0 +1,321 @@
+ func getCustomerListData(){
+        let urlx = "https://learning.palmleafsolutions.com//main/webservices/customerform.rest.php?switch=customerform_is_user_allowed&deviceType=iOS&deviceName=iPhone&version=5.118"
+        AlamofireAPICall.getRequestAPICall(urlx, success: { (json: JSON, data: Data) in
+            print("Data:\(json)")
+                let decoder = JSONDecoder()
+                //let data = Data(json.utf8)
+                do {
+                    let decoded = try decoder.decode(ResponseData.self, from: data)
+                    print("JSON Decode:\(decoded.sucess!)")
+                } catch {
+                    print("Failed to decode JSON xxx")
+                }
+           
+        }) { (erro: Error) in
+            print("Error in API CAll xxx")
+        }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+import UIKit
+import Alamofire
+import SwiftyJSON
+
+class AlamofireAPICall: NSObject {
+    
+    
+    
+   class func colorWithHexString (hex:String) -> UIColor {
+        var cString:String = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        if (cString.hasPrefix("#")) {
+            cString = (cString as NSString).substring(from: 1)
+        }
+        
+        if (cString.characters.count != 6) {
+            return UIColor.gray
+        }
+        
+        let rString = (cString as NSString).substring(to: 2)
+        let gString = ((cString as NSString).substring(from: 2) as NSString).substring(to: 2)
+        let bString = ((cString as NSString).substring(from: 4) as NSString).substring(to: 2)
+        var r:CUnsignedInt = 0, g:CUnsignedInt = 0, b:CUnsignedInt = 0;
+        Scanner(string: rString).scanHexInt32(&r)
+        Scanner(string: gString).scanHexInt32(&g)
+        Scanner(string: bString).scanHexInt32(&b)
+        return UIColor(red: CGFloat(r) / 255.0, green: CGFloat(g) / 255.0, blue: CGFloat(b) / 255.0, alpha: CGFloat(1))
+    }
+
+    
+    
+
+
+
+
+
+
+
+class func getRequestAPICallRest(_ strURL: String, success:@escaping (JSON, Data) -> Void, failure:@escaping (Error) -> Void) {  
+        Alamofire.request(strURL, headers: headers).responseJSON { (responseObject) -> Void in
+            print("Request Responce Data:\(responseObject)")
+            if responseObject.result.isSuccess {
+                do{
+                 let userDict = try JSONSerialization.jsonObject(with: responseObject.data!, options: .allowFragments) as? [String: Any]
+                    success(userDict!, responseObject.data!)
+                }catch let error{
+                    failure(error)
+                }
+            }
+            if responseObject.result.isFailure {
+                let error : Error = responseObject.result.error!
+                failure(error)
+            }
+        }
+    }
+    
+    
+    class func getRequestAPICall(_ strURL: String, success:@escaping (JSON, Data) -> Void, failure:@escaping (Error) -> Void) {
+        let headers: HTTPHeaders = [
+            "Authorization": USER_SESSION_BEARER_TOKEN
+        ]
+        
+        print("Request URL:\(strURL)  headers:\(headers)");
+        
+        Alamofire.request(strURL, headers: headers).responseJSON { (responseObject) -> Void in
+            print("Request Responce Data:\(responseObject)")
+            if responseObject.result.isSuccess {
+                do{
+                 let userDict = try JSONSerialization.jsonObject(with: responseObject.data!, options: .allowFragments) as? [String: Any]
+                    success(userDict!, responseObject.data!)
+                }catch let error{
+                    failure(error)
+                }
+            }
+            if responseObject.result.isFailure {
+                let error : Error = responseObject.result.error!
+                failure(error)
+            }
+        }
+    }
+    
+    
+    
+    
+    
+    class func PostRequestAPICall(_ strURL : String, params : [String : String]?, headers : [String : String]?, success:@escaping (JSON) -> Void, failure:@escaping (Error) -> Void){
+        print("Request URL :\(strURL) + ---params---\(params)---headers---\(headers)");
+        Alamofire.request(strURL, method: .post, parameters: params, encoding: JSONEncoding.default, headers: headers).responseJSON { (responseObject) -> Void in
+            print("Request Responce Data: \(responseObject)")
+            
+            if responseObject.result.isSuccess {
+                //let resJson = JSON(responseObject.result.value!)
+                //success(resJson)
+                if let userDict = try? JSONSerialization.jsonObject(with: responseObject.data!, options: .allowFragments) as? [String: Any] {
+                    success(userDict!)
+                }
+            }
+            if responseObject.result.isFailure {
+                let error : Error = responseObject.result.error!
+                failure(error)
+            }
+        }
+    }
+    
+    
+    
+    
+    class func postRequestFormDataAPICall(_ strURL : String, params : [String : String]?, headers : [String : String]?, success:@escaping (JSON) -> Void, failure:@escaping (Error) -> Void){
+        let headers: HTTPHeaders = [
+            "Content-type": "multipart/form-data"
+        ]
+        print("Request URL :\(strURL) + ---params---\(params)---headers---\(headers)");
+        
+        Alamofire.upload(multipartFormData: { (multipartFormData) in
+            for (key, value) in params! {
+                multipartFormData.append("\(value)".data(using: String.Encoding.utf8)!, withName: key as String)
+            }
+        }, usingThreshold: UInt64.init(), to: strURL, method: .post, headers: headers) { (result) in
+            
+            switch result{
+            case .success(let upload, _, _):
+                upload.responseJSON { response in
+                    
+                    print("Request Responce Data:\(response.result)")
+                    if response.result.isSuccess {
+                       // let resJson = JSON(response.result.value!)
+                       // success(resJson)
+                        if let userDict = try? JSONSerialization.jsonObject(with: response.data!, options: .allowFragments) as? [String: Any] {
+                            success(userDict!)
+                        }
+                    }
+                    if response.result.isFailure {
+                        let error : Error = response.result.error!
+                        failure(error)
+                    }
+                }
+            case .failure(let error):
+                print("Error in upload: \(error.localizedDescription)")
+                failure(error)
+            }
+        }
+    }
+    
+    
+    
+    
+    
+    class func requestPOSTURLWithFormDataAndImageArrayAndPDFArray(_ strURL : String, params : [String : String]?, headers : [String : String]?, imageArray : [Any]?, pdfArray : [Any]?, success:@escaping (JSON) -> Void, failure:@escaping (Error) -> Void){
+        let headers: HTTPHeaders = [
+            "Content-type": "multipart/form-data"
+        ]
+        print("requestPOSTURL - strURL---\(strURL)  ---params---\(params)---headers---\(headers)");
+        
+        Alamofire.upload(multipartFormData: { (multipartFormData) in
+            for (key, value) in params! {
+                multipartFormData.append("\(value)".data(using: String.Encoding.utf8)!, withName: key as String)
+            }
+            
+            if(imageArray!.count > 0)
+            {
+                var count = 0
+                for img in imageArray!
+                {
+                    count += 1
+                    let data =  UIImageJPEGRepresentation(img as! UIImage, 0.5) as? Data
+                    if (data != nil)
+                    {
+                        let imageName = "image" + String(count)
+                        multipartFormData.append(data!, withName: imageName, fileName: "image" + String(count) + ".png", mimeType: "image/png")
+                    }
+                }
+            }
+
+
+            if(pdfArray!.count > 0)
+            {
+                for pdfurl in pdfArray!
+                {
+                        do {
+                            let data = try Data(contentsOf: pdfurl as! URL)
+                            multipartFormData.append(data, withName: "pdf_name",  fileName: "pdf.pdf", mimeType: "application/pdf")
+                        } catch {
+                            print(error)
+                        }
+                }
+            }
+            
+        }, usingThreshold: UInt64.init(), to: strURL, method: .post, headers: headers) { (result) in
+            
+            switch result{
+            case .success(let upload, _, _):
+                upload.responseJSON { response in
+            
+                    print("Request-Responce --\(response.result)")
+                    if response.result.isSuccess {
+                        //let resJson = JSON(response.result.value!)
+                        //success(resJson)
+                        if let userDict = try? JSONSerialization.jsonObject(with: response.data!, options: .allowFragments) as? [String: Any] {
+                            success(userDict!)
+                        }
+                    }
+                    if response.result.isFailure {
+                        let error : Error = response.result.error!
+                        failure(error)
+                    }
+                    
+                }
+            case .failure(let error):
+                print("Error in upload: \(error.localizedDescription)")
+                failure(error)
+            }
+        }
+    }
+    
+    
+    
+    
+    
+    class func requestPOSTvideoWithUrl(_ strURL : String, params : [String : String]?, headers : [String : String]?, videoArray : [Any]?, success:@escaping (JSON) -> Void, failure:@escaping (Error) -> Void){
+        let headers: HTTPHeaders = [
+            "Content-type": "multipart/form-data"
+        ]
+        print("Request - strURL---\(strURL) + ---params---\(params)---headers---\(headers)");
+        
+        Alamofire.upload(multipartFormData: { (multipartFormData) in
+            for (key, value) in params! {
+                multipartFormData.append("\(value)".data(using: String.Encoding.utf8)!, withName: key as String)
+                
+            }
+            
+            if(videoArray!.count > 0)
+            {
+                for videoUrl in videoArray!
+                {
+                    do {
+                        let data = try Data(contentsOf:videoUrl as! URL)
+                        multipartFormData.append(data, withName: "video", fileName: "videoiOS.mp4", mimeType: "video/mp4")
+                    } catch {
+                        print(error)
+                    }
+                }
+            }
+            
+        }, usingThreshold: UInt64.init(), to: strURL, method: .post, headers: headers) { (result) in
+            
+            switch result{
+            case .success(let upload, _, _):
+                upload.responseJSON { response in
+                    
+                    print("Request--Responce--\(response.result)")
+                    if response.result.isSuccess {
+                       // let resJson = JSON(response.result.value!)
+                       // success(resJson)
+                        if let userDict = try? JSONSerialization.jsonObject(with: response.data!, options: .allowFragments) as? [String: Any] {
+                            success(userDict!)
+                        }
+                    }
+                    if response.result.isFailure {
+                        let error : Error = response.result.error!
+                        failure(error)
+                    }
+                    
+                }
+            case .failure(let error):
+                print("Error in upload: \(error.localizedDescription)")
+                failure(error)
+            }
+        }
+    }
+    
+    
+    class func getImagData(photoUrl: URL, success:@escaping (UIImage) -> Void, failure:@escaping (Error) -> Void){
+        print("Request - strURL---\(photoUrl)");
+        
+        Alamofire.request(photoUrl).responseData { (response) in
+        if response.error == nil {
+            print(response.result)
+                if let data = response.data {
+                    success(UIImage(data: data)!)
+                }else{
+                    failure(response.error!)
+                }
+            }else{
+                failure(response.error!)
+            }
+        }
+    }
+    
+    
+    
+    
+    
+   
+    
+    
+}

@@ -1,0 +1,76 @@
+
+struct ResponseData: Codable{
+    /*
+        // JSON Structure / Formate for parse data with help of Codable
+        let json = """
+        {
+          "sucess": "1"
+          "is_allowed": "1",
+          "ResponseTime": "12/17/2019 10:49:42 AM",
+          "Response": {
+            "Contacts": [
+              {
+                "ID": 3527,
+                "Organization": "sjhgjsda Africa ashgsf",
+                "Email": "dsajhjhdskhskjfsl@airtel.com",
+                "FullName": "Zone3 Maavaishnav"
+              },
+              {
+                "ID": 5121,
+                "Organization": "Airtel Africa",
+                "Email": "zone3_maavaishnav@airtel.com",
+                "FullName": "Zone3 Maavaishnav"
+              }
+            ]
+          }
+        }
+     """
+    */
+    
+    
+    
+    // How to paas class with json data
+    /*
+     let decoder = JSONDecoder()
+     //let data = Data(json.utf8) //  Parse String JSON(above) formate Data for convert String To Data
+     do {
+         let decoded = try decoder.decode(ResponseData.self, from: data) //decoder accept only Data type of data for decod
+         print("JSON Decode:\(decoded.sucess!)")
+     } catch {
+        print("Failed to decode JSON xxx")
+     }
+    */
+    
+    var is_allowed: String?
+    var sucess: String?
+    
+    var Status: Status?
+    var ResponseTime : String?
+    var Response : Response?
+    
+    
+    
+    struct Status: Codable {
+        var StatusCode: String?
+        var StatusMessage : String?
+    }
+    
+    struct Response: Codable {
+        var Contacts:[Contacts]?
+    }
+    struct Contacts: Codable {
+        var ID: Int?
+        var Organization:String?
+        var Email:String?
+        var FullName: String?
+        var ContactNo: String?
+        var Location: String?
+        var Designation: String?
+        var Invoice: String?
+        var Followup: String?
+        var IsActive: String?
+        var Domain: String?
+        var QCSAT: String?
+        var Function: String?
+    }
+}

@@ -1,0 +1,62 @@
+var dataArray : [String] = [];
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "CompanyList_Cell") as! CompanyList_Cell
+        cell.compnyName.text = self.ArrListData[indexPath.row].OrganizationName //self.dataArray[indexPath.row]
+        cell.labCount.text = self.ArrListData[indexPath.row].TotalContacts //"#\(indexPath.row)"
+        if indexPath.row == self.dataArray.count - 3 {
+            //self.loadMore()
+        }
+        return cell
+    }
+    
+    
+    
+   
+    //
+    let totalNoofItemFech = 5000
+    // number of items to be fetched each time (i.e., database LIMIT)
+    let itemsPerBatch = 10
+    // Where to start fetching items (database OFFSET)
+    var offset = 0
+    // a flag for when all database items have already been loaded
+    var reachedEndOfItems = false
+    // check is laoding data or not
+    var isLoading = false
+    func loadMore(){
+        if(isLoading){
+            return
+        }
+        
+        // don't bother doing another db query if already have everything
+        guard !self.reachedEndOfItems else {
+            return
+        }
+
+        
+        DispatchQueue.global(qos: .background).async {
+        // DispatchQueue.main.sync {
+            self.isLoading = true;
+            self.fetchDataFromServer(isLoadFirstTime: false);
+        }
+    }
+    
+    
+    
+    func fetchDataFromServer(isLoadFirstTime: Bool){
+       // DispatchQueue.main.sync {
+            for i in 0...itemsPerBatch{
+                self.dataArray.append("Tech Page#\(offset)  Count#\(self.dataArray.count)")
+            }
+            self.uiTableView.reloadData()
+            offset = offset + 1
+            
+            if(self.dataArray.count >= totalNoofItemFech){
+                self.isLoading = false;
+                self.reachedEndOfItems = true
+            }
+            self.isLoading = false;
+      //  }
+    }
+    
+    
+    
